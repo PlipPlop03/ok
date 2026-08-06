@@ -1,3 +1,7 @@
+---
+description: Analyze test coverage, identify files below the 80% threshold, and generate missing unit, integration, and E2E tests.
+---
+
 # Test Coverage
 
 Analyze test coverage and generate missing tests:

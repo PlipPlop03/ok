@@ -1,3 +1,7 @@
+---
+description: Manage eval-driven development workflow - define, check, and report on capability/regression evals. Usage: /eval [define|check|report|list] [feature-name].
+---
+
 # Eval Command
 
 Manage eval-driven development workflow.

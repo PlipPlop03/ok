@@ -1,3 +1,7 @@
+---
+description: Scan the codebase and regenerate token-lean architecture codemaps (architecture, backend, frontend, data), gated on diff percentage and user approval.
+---
+
 # Update Codemaps
 
 Analyze the codebase structure and update architecture documentation:
