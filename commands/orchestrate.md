@@ -1,3 +1,7 @@
+---
+description: Run a sequential multi-agent workflow (e.g. planner -> tdd-guide -> code-reviewer -> security-reviewer) for complex tasks. Usage: /orchestrate [workflow-type] [task-description].
+---
+
 # Orchestrate Command
 
 Sequential agent workflow for complex tasks.

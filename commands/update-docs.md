@@ -1,3 +1,7 @@
+---
+description: Sync generated documentation (script reference, env vars, CONTRIB.md) from source-of-truth files like package.json and .env.example.
+---
+
 # Update Documentation
 
 Sync documentation from source-of-truth:

@@ -1,3 +1,7 @@
+---
+description: Run comprehensive verification (build, type check, lint, tests) on the current codebase state before continuing or opening a PR.
+---
+
 # Verification Command
 
 Run comprehensive verification on current codebase state.

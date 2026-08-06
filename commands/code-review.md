@@ -1,3 +1,7 @@
+---
+description: Comprehensive security and quality review of uncommitted changes, covering credentials, injection, XSS, input validation, and insecure dependencies.
+---
+
 # Code Review
 
 Comprehensive security and quality review of uncommitted changes:
