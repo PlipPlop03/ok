@@ -1,0 +1,13 @@
+{
+  "name": "Console.log Warning",
+  "version": "1.0.0",
+  "description": "Warns about console.log statements in edited JS/TS files - these should be removed before committing",
+  "when": {
+    "type": "fileEdited",
+    "patterns": ["*.ts", "*.tsx", "*.js", "*.jsx"]
+  },
+  "then": {
+    "type": "runCommand",
+    "command": "grep -n 'console\\.log' \"$KIRO_FILE_PATH\" && echo '[WARNING] Remove console.log statements before committing' || true"
+  }
+}

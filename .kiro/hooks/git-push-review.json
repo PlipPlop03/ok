@@ -1,0 +1,13 @@
+{
+  "name": "Git Push Review Reminder",
+  "version": "1.0.0",
+  "description": "Before executing shell commands that involve git push, remind to review changes first",
+  "when": {
+    "type": "preToolUse",
+    "toolTypes": ["shell"]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "If this shell command involves 'git push', ensure you have: 1) Reviewed the diff with git diff, 2) Confirmed all tests pass, 3) Verified no console.log or hardcoded secrets in the diff, 4) Used a feature branch (not main/master). If the command is not git-related, proceed normally."
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "name": "Post-Task Verification",
+  "version": "1.0.0",
+  "description": "After completing a spec task, run build and type checking to verify nothing is broken",
+  "when": {
+    "type": "postTaskExecution"
+  },
+  "then": {
+    "type": "runCommand",
+    "command": "npx tsc --noEmit 2>&1 | tail -20"
+  }
+}

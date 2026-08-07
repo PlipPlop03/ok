@@ -1,392 +1,388 @@
-# Everything Claude Code
+# Everything Kiro
 
-[![Stars](https://img.shields.io/github/stars/affaan-m/everything-claude-code?style=flat)](https://github.com/affaan-m/everything-claude-code/stargazers)
-[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-![Shell](https://img.shields.io/badge/-Shell-4EAA25?logo=gnu-bash&logoColor=white)
-![TypeScript](https://img.shields.io/badge/-TypeScript-3178C6?logo=typescript&logoColor=white)
-![Markdown](https://img.shields.io/badge/-Markdown-000000?logo=markdown&logoColor=white)
+**Battle-tested development configurations for [Kiro](https://kiro.dev) — migrated from the original "Everything Claude Code" plugin.**
 
-**The complete collection of Claude Code configs from an Anthropic hackathon winner.**
-
-Production-ready agents, skills, hooks, commands, rules, and MCP configurations evolved over 10+ months of intensive daily use building real products.
-
----
-
-## The Guides
-
-This repo is the raw code only. The guides explain everything.
-
-<table>
-<tr>
-<td width="50%">
-<a href="https://x.com/affaanmustafa/status/2012378465664745795">
-<img src="https://github.com/user-attachments/assets/1a471488-59cc-425b-8345-5245c7efbcef" alt="The Shorthand Guide to Everything Claude Code" />
-</a>
-</td>
-<td width="50%">
-<a href="https://x.com/affaanmustafa/status/2014040193557471352">
-<img src="https://github.com/user-attachments/assets/c9ca43bc-b149-427f-b551-af6840c368f0" alt="The Longform Guide to Everything Claude Code" />
-</a>
-</td>
-</tr>
-<tr>
-<td align="center"><b>Shorthand Guide</b><br/>Setup, foundations, philosophy. <b>Read this first.</b></td>
-<td align="center"><b>Longform Guide</b><br/>Token optimization, memory persistence, evals, parallelization.</td>
-</tr>
-</table>
-
-| Topic | What You'll Learn |
-|-------|-------------------|
-| Token Optimization | Model selection, system prompt slimming, background processes |
-| Memory Persistence | Hooks that save/load context across sessions automatically |
-| Continuous Learning | Auto-extract patterns from sessions into reusable skills |
-| Verification Loops | Checkpoint vs continuous evals, grader types, pass@k metrics |
-| Parallelization | Git worktrees, cascade method, when to scale instances |
-| Subagent Orchestration | The context problem, iterative retrieval pattern |
-
----
-
-## Cross-Platform Support
-
-This plugin now fully supports **Windows, macOS, and Linux**. All hooks and scripts have been rewritten in Node.js for maximum compatibility.
-
-### Package Manager Detection
-
-The plugin automatically detects your preferred package manager (npm, pnpm, yarn, or bun) with the following priority:
-
-1. **Environment variable**: `CLAUDE_PACKAGE_MANAGER`
-2. **Project config**: `.claude/package-manager.json`
-3. **package.json**: `packageManager` field
-4. **Lock file**: Detection from package-lock.json, yarn.lock, pnpm-lock.yaml, or bun.lockb
-5. **Global config**: `~/.claude/package-manager.json`
-6. **Fallback**: First available package manager
-
-To set your preferred package manager:
-
-```bash
-# Via environment variable
-export CLAUDE_PACKAGE_MANAGER=pnpm
-
-# Via global config
-node scripts/setup-package-manager.js --global pnpm
-
-# Via project config
-node scripts/setup-package-manager.js --project bun
-
-# Detect current setting
-node scripts/setup-package-manager.js --detect
-```
-
-Or use the `/setup-pm` command in Claude Code.
+Production-ready steering files, hooks, and MCP configurations evolved over 10+ months of intensive daily use building real products, now adapted for Kiro's architecture.
 
 ---
 
 ## What's Inside
 
-This repo is a **Claude Code plugin** - install it directly or copy components manually.
-
 ```
-everything-claude-code/
-|-- .claude-plugin/   # Plugin and marketplace manifests
-|   |-- plugin.json         # Plugin metadata and component paths
-|   |-- marketplace.json    # Marketplace catalog for /plugin marketplace add
-|
-|-- agents/           # Specialized subagents for delegation
-|   |-- planner.md           # Feature implementation planning
-|   |-- architect.md         # System design decisions
-|   |-- tdd-guide.md         # Test-driven development
-|   |-- code-reviewer.md     # Quality and security review
-|   |-- security-reviewer.md # Vulnerability analysis
-|   |-- build-error-resolver.md
-|   |-- e2e-runner.md        # Playwright E2E testing
-|   |-- refactor-cleaner.md  # Dead code cleanup
-|   |-- doc-updater.md       # Documentation sync
-|
-|-- skills/           # Workflow definitions and domain knowledge
-|   |-- coding-standards/           # Language best practices
-|   |-- backend-patterns/           # API, database, caching patterns
-|   |-- frontend-patterns/          # React, Next.js patterns
-|   |-- continuous-learning/        # Auto-extract patterns from sessions (Longform Guide)
-|   |-- strategic-compact/          # Manual compaction suggestions (Longform Guide)
-|   |-- tdd-workflow/               # TDD methodology
-|   |-- security-review/            # Security checklist
-|   |-- eval-harness/               # Verification loop evaluation (Longform Guide)
-|   |-- verification-loop/          # Continuous verification (Longform Guide)
-|
-|-- commands/         # Slash commands for quick execution
-|   |-- tdd.md              # /tdd - Test-driven development
-|   |-- plan.md             # /plan - Implementation planning
-|   |-- e2e.md              # /e2e - E2E test generation
-|   |-- code-review.md      # /code-review - Quality review
-|   |-- build-fix.md        # /build-fix - Fix build errors
-|   |-- refactor-clean.md   # /refactor-clean - Dead code removal
-|   |-- learn.md            # /learn - Extract patterns mid-session (Longform Guide)
-|   |-- checkpoint.md       # /checkpoint - Save verification state (Longform Guide)
-|   |-- verify.md           # /verify - Run verification loop (Longform Guide)
-|   |-- setup-pm.md         # /setup-pm - Configure package manager (NEW)
-|
-|-- rules/            # Always-follow guidelines (copy to ~/.claude/rules/)
-|   |-- security.md         # Mandatory security checks
-|   |-- coding-style.md     # Immutability, file organization
-|   |-- testing.md          # TDD, 80% coverage requirement
-|   |-- git-workflow.md     # Commit format, PR process
-|   |-- agents.md           # When to delegate to subagents
-|   |-- performance.md      # Model selection, context management
-|
-|-- hooks/            # Trigger-based automations
-|   |-- hooks.json                # All hooks config (PreToolUse, PostToolUse, Stop, etc.)
-|   |-- memory-persistence/       # Session lifecycle hooks (Longform Guide)
-|   |-- strategic-compact/        # Compaction suggestions (Longform Guide)
-|
-|-- scripts/          # Cross-platform Node.js scripts (NEW)
-|   |-- lib/                     # Shared utilities
-|   |   |-- utils.js             # Cross-platform file/path/system utilities
-|   |   |-- package-manager.js   # Package manager detection and selection
-|   |-- hooks/                   # Hook implementations
-|   |   |-- session-start.js     # Load context on session start
-|   |   |-- session-end.js       # Save state on session end
-|   |   |-- pre-compact.js       # Pre-compaction state saving
-|   |   |-- suggest-compact.js   # Strategic compaction suggestions
-|   |   |-- evaluate-session.js  # Extract patterns from sessions
-|   |-- setup-package-manager.js # Interactive PM setup
-|
-|-- tests/            # Test suite (NEW)
-|   |-- lib/                     # Library tests
-|   |-- hooks/                   # Hook tests
-|   |-- run-all.js               # Run all tests
-|
-|-- contexts/         # Dynamic system prompt injection contexts (Longform Guide)
-|   |-- dev.md              # Development mode context
-|   |-- review.md           # Code review mode context
-|   |-- research.md         # Research/exploration mode context
-|
-|-- examples/         # Example configurations and sessions
-|   |-- CLAUDE.md           # Example project-level config
-|   |-- user-CLAUDE.md      # Example user-level config
-|
-|-- mcp-configs/      # MCP server configurations
-|   |-- mcp-servers.json    # GitHub, Supabase, Vercel, Railway, etc.
-|
-|-- marketplace.json  # Self-hosted marketplace config (for /plugin marketplace add)
+.kiro/
+├── steering/                  # Always-on and on-demand guidance
+│   ├── coding-style.md            # Immutability, file size limits, error handling
+│   ├── security.md                # No hardcoded secrets, input validation
+│   ├── testing.md                 # TDD requirements, 80% coverage minimum
+│   ├── git-workflow.md            # Conventional commits, PR process
+│   ├── patterns.md               # API response format, common patterns
+│   ├── performance.md            # Context management, code performance
+│   ├── agents-orchestration.md   # When to delegate, multi-perspective analysis
+│   ├── security-review.md        # [Conditional] Deep OWASP checks for auth/api files
+│   ├── tdd-workflow.md            # [Manual] Full TDD step-by-step guide
+│   ├── planning.md               # [Manual] Implementation planning template
+│   └── code-review.md            # [Manual] Code review checklist
+│
+├── hooks/                     # Automated agent actions on IDE events
+│   ├── prettier-format.json       # Auto-format JS/TS on save
+│   ├── typescript-check.json      # Run tsc after editing TS files
+│   ├── console-log-warning.json   # Warn about leftover console.log
+│   ├── security-check-on-api.json # Security prompt when creating API files
+│   ├── git-push-review.json       # Review reminder before git push
+│   ├── review-write-operations.json # Validate standards before writes
+│   └── post-task-verify.json      # Type-check after spec task completion
+│
+└── settings/
+    └── mcp.json               # Pre-configured MCP servers (disabled by default)
 ```
 
 ---
 
 ## Installation
 
-### Option 1: Install as Plugin (Recommended)
+### Global Setup (Recommended)
 
-The easiest way to use this repo - install as a Claude Code plugin:
+Install `everything-kiro` as a global command you can run from any project. Works on **Windows, macOS, and Linux** (requires Node.js 14+).
 
 ```bash
-# Add this repo as a marketplace
-/plugin marketplace add affaan-m/everything-claude-code
+# 1. Clone the repo to a permanent location
+git clone https://github.com/aliakbr/everything-claude-code-kiro-migration.git ~/.everything-kiro
 
-# Install the plugin
-/plugin install everything-claude-code@everything-claude-code
+# 2. Link the CLI globally
+cd ~/.everything-kiro
+npm link
 ```
 
-Or add directly to your `~/.claude/settings.json`:
+Now you can run it from any project directory:
+
+```bash
+cd ~/my-project
+everything-kiro install
+```
+
+#### Windows (PowerShell)
+
+```powershell
+# 1. Clone the repo
+git clone https://github.com/aliakbr/everything-claude-code-kiro-migration.git $HOME\.everything-kiro
+
+# 2. Link the CLI globally
+cd $HOME\.everything-kiro
+npm link
+```
+
+Then use it the same way:
+
+```powershell
+cd C:\Users\you\my-project
+everything-kiro install
+```
+
+#### Updating
+
+Pull the latest configurations at any time:
+
+```bash
+everything-kiro update
+```
+
+---
+
+### Usage
+
+Navigate to any project and run:
+
+```bash
+everything-kiro install
+```
+
+That's it. Open the project in Kiro and everything is active.
+
+#### Install specific components
+
+```bash
+everything-kiro install --steering-only   # Only steering files
+everything-kiro install --hooks-only      # Only hooks
+everything-kiro install --mcp-only        # Only MCP server config
+```
+
+#### Upgrade existing installation
+
+```bash
+everything-kiro install --force    # Overwrites existing files with latest
+```
+
+#### Preview before installing
+
+```bash
+everything-kiro install --dry-run
+```
+
+Output:
+```
+▶ Installing steering files...
+  would create .kiro/steering/coding-style.md
+  would create .kiro/steering/security.md
+  ...
+▶ Installing hooks...
+  would create .kiro/hooks/prettier-format.json
+  ...
+Dry run complete — no files were changed.
+```
+
+#### Install into a different directory
+
+```bash
+KIRO_TARGET_DIR=/path/to/other-project everything-kiro install
+```
+
+---
+
+### All CLI Options
+
+```
+everything-kiro <command> [flags]
+
+Commands:
+  install       Install .kiro config into the current directory
+  update        Pull the latest configurations from GitHub
+  help          Show help message
+
+Install Flags:
+  --force           Overwrite existing files (for upgrades)
+  --dry-run         Preview changes without writing anything
+  --steering-only   Install only .kiro/steering/ files
+  --hooks-only      Install only .kiro/hooks/ files
+  --mcp-only        Install only .kiro/settings/mcp.json
+
+Platforms: Windows, macOS, Linux (requires Node.js 14+)
+```
+
+---
+
+## How It Works in Kiro
+
+### Steering Files
+
+Steering files are markdown instructions that guide Kiro's behavior. They come in three flavors:
+
+**Always active** — Included in every interaction automatically:
+| File | What it does |
+|------|--------------|
+| `coding-style.md` | Enforces immutability, small files, proper error handling |
+| `security.md` | Blocks hardcoded secrets, mandates input validation |
+| `testing.md` | Requires TDD workflow and 80%+ test coverage |
+| `git-workflow.md` | Enforces conventional commits, feature branches |
+| `patterns.md` | Defines standard API response format, repository pattern |
+| `performance.md` | Guides efficient algorithms, caching, context management |
+| `agents-orchestration.md` | Determines when to plan vs act, delegation rules |
+
+**Conditional** — Auto-included when you open matching files:
+| File | Triggers on |
+|------|-------------|
+| `security-review.md` | Files in `**/auth/**`, `**/api/**`, `**/middleware/**`, or named `*auth*`, `*security*`, `*token*`, `*session*` |
+
+**Manual** — Include on demand by typing `#` in chat and selecting the file:
+| File | Use when |
+|------|----------|
+| `tdd-workflow.md` | Starting a TDD session |
+| `planning.md` | Planning a complex feature before coding |
+| `code-review.md` | Asking Kiro to review your code |
+
+### Hooks
+
+Hooks fire automatically on IDE events. No action needed from you — they just work.
+
+| Hook | Trigger | What happens |
+|------|---------|--------------|
+| **Prettier Format** | Save a JS/TS file | Runs `prettier --write` |
+| **TypeScript Check** | Save a TS file | Runs `tsc --noEmit` |
+| **Console.log Warning** | Save a JS/TS file | Greps for `console.log`, warns if found |
+| **Security Check** | Create a file in `api/` or `routes/` | Prompts Kiro to verify auth, validation, rate limiting |
+| **Git Push Review** | Before any shell command | If it's `git push`, reminds to review diff first |
+| **Write Review** | Before any file write | Checks for secrets, mutations, file size |
+| **Post-Task Verify** | After completing a spec task | Runs type checking |
+
+### MCP Servers
+
+Pre-configured but **disabled by default**. Enable what your project needs in `.kiro/settings/mcp.json`:
 
 ```json
 {
-  "extraKnownMarketplaces": {
-    "everything-claude-code": {
-      "source": {
-        "source": "github",
-        "repo": "affaan-m/everything-claude-code"
-      }
-    }
-  },
-  "enabledPlugins": {
-    "everything-claude-code@everything-claude-code": true
+  "mcpServers": {
+    "github": { "disabled": false, ... },
+    "supabase": { "disabled": false, ... }
   }
 }
 ```
 
-This gives you instant access to all commands, agents, skills, and hooks.
+Available servers: GitHub, Firecrawl, Supabase, Memory, Sequential Thinking, Context7.
+
+**Tip:** Keep under 10 servers enabled to preserve context window quality.
 
 ---
 
-### Option 2: Manual Installation
+## Customization
 
-If you prefer manual control over what's installed:
+### Add your own steering rules
 
-```bash
-# Clone the repo
-git clone https://github.com/affaan-m/everything-claude-code.git
-
-# Copy agents to your Claude config
-cp everything-claude-code/agents/*.md ~/.claude/agents/
-
-# Copy rules
-cp everything-claude-code/rules/*.md ~/.claude/rules/
-
-# Copy commands
-cp everything-claude-code/commands/*.md ~/.claude/commands/
-
-# Copy skills
-cp -r everything-claude-code/skills/* ~/.claude/skills/
-```
-
-#### Add hooks to settings.json
-
-Copy the hooks from `hooks/hooks.json` to your `~/.claude/settings.json`.
-
-#### Configure MCPs
-
-Copy desired MCP servers from `mcp-configs/mcp-servers.json` to your `~/.claude.json`.
-
-**Important:** Replace `YOUR_*_HERE` placeholders with your actual API keys.
-
----
-
-## Key Concepts
-
-### Agents
-
-Subagents handle delegated tasks with limited scope. Example:
+Create a new file in `.kiro/steering/`:
 
 ```markdown
 ---
-name: code-reviewer
-description: Reviews code for quality, security, and maintainability
-tools: Read, Grep, Glob, Bash
-model: opus
+inclusion: always
 ---
 
-You are a senior code reviewer...
+# My Project Rules
+
+- Use React Query for all API calls
+- Use Tailwind CSS, never inline styles
+- All components must be accessible (WCAG 2.1 AA)
 ```
 
-### Skills
+### Add project-specific hooks
 
-Skills are workflow definitions invoked by commands or agents:
-
-```markdown
-# TDD Workflow
-
-1. Define interfaces first
-2. Write failing tests (RED)
-3. Implement minimal code (GREEN)
-4. Refactor (IMPROVE)
-5. Verify 80%+ coverage
-```
-
-### Hooks
-
-Hooks fire on tool events. Example - warn about console.log:
+Create a new JSON file in `.kiro/hooks/`:
 
 ```json
 {
-  "matcher": "tool == \"Edit\" && tool_input.file_path matches \"\\\\.(ts|tsx|js|jsx)$\"",
-  "hooks": [{
-    "type": "command",
-    "command": "#!/bin/bash\ngrep -n 'console\\.log' \"$file_path\" && echo '[Hook] Remove console.log' >&2"
-  }]
+  "name": "Lint on Save",
+  "version": "1.0.0",
+  "when": {
+    "type": "fileEdited",
+    "patterns": ["*.ts", "*.tsx"]
+  },
+  "then": {
+    "type": "runCommand",
+    "command": "npx eslint --fix \"$KIRO_FILE_PATH\""
+  }
 }
 ```
 
-### Rules
+### Disable a hook
 
-Rules are always-follow guidelines. Keep them modular:
+Delete the JSON file from `.kiro/hooks/`, or rename it to `.json.disabled`.
 
+### Enable an MCP server
+
+Edit `.kiro/settings/mcp.json` and set `"disabled": false` for the server you want. Replace `YOUR_*_HERE` placeholders with actual credentials.
+
+---
+
+## How Kiro Differs from Claude Code
+
+Kiro and Claude Code are both AI-powered development environments, but they have different architectures for customization:
+
+### Architecture Comparison
+
+| Concept | Claude Code | Kiro |
+|---------|-------------|------|
+| **Configuration location** | `~/.claude/` (global) + project root | `.kiro/` in project root |
+| **Instruction files** | `CLAUDE.md` at project root | `.kiro/steering/*.md` with frontmatter |
+| **Custom commands** | `~/.claude/commands/*.md` (slash commands) | No slash commands — use manual steering files or hooks |
+| **Custom agents** | `~/.claude/agents/*.md` with model/tools metadata | Built-in sub-agents; custom behavior via steering |
+| **Hook system** | Single `hooks.json` with matcher expressions | Individual `.json` files per hook in `.kiro/hooks/` |
+| **Hook events** | PreToolUse, PostToolUse, Stop, SessionStart, etc. | fileEdited, fileCreated, preToolUse, postToolUse, promptSubmit, etc. |
+| **MCP config** | `~/.claude.json` (global) | `.kiro/settings/mcp.json` (per-workspace) |
+| **Skills/workflows** | `~/.claude/skills/` directories | Folded into steering files |
+| **Context injection** | Always-on via CLAUDE.md | Three modes: `always`, `fileMatch`, `manual` |
+| **Plugin system** | `.claude-plugin/` marketplace format | No plugin marketplace (copy `.kiro/` directory) |
+
+### Key Differences in Practice
+
+**1. Steering files replace multiple Claude Code concepts**
+
+In Claude Code you had separate directories for rules, agents, skills, contexts, and commands. In Kiro, all of these collapse into `.kiro/steering/*.md` files with a frontmatter header controlling when they activate:
+
+```markdown
+---
+inclusion: always          # Every interaction (like Claude Code rules)
+inclusion: fileMatch       # When matching files are opened (like contexts)
+inclusion: manual          # On-demand via # in chat (like commands)
+---
 ```
-~/.claude/rules/
-  security.md      # No hardcoded secrets
-  coding-style.md  # Immutability, file limits
-  testing.md       # TDD, coverage requirements
+
+**2. Hooks are simpler but less granular**
+
+Claude Code hooks used complex matcher expressions:
+```json
+"matcher": "tool == \"Bash\" && tool_input.command matches \"git push\""
 ```
 
----
-
-## Running Tests
-
-The plugin includes a comprehensive test suite:
-
-```bash
-# Run all tests
-node tests/run-all.js
-
-# Run individual test files
-node tests/lib/utils.test.js
-node tests/lib/package-manager.test.js
-node tests/hooks/hooks.test.js
+Kiro hooks use event types + file patterns or tool categories:
+```json
+{
+  "when": { "type": "fileEdited", "patterns": ["*.ts"] },
+  "then": { "type": "runCommand", "command": "npx tsc --noEmit" }
+}
 ```
 
----
+This is easier to write but less precise for filtering specific tool invocations.
 
-## Contributing
+**3. No dedicated agent definitions**
 
-**Contributions are welcome and encouraged.**
+Claude Code let you define agents with specific `model` and `tools` restrictions. Kiro doesn't have this — instead it has built-in sub-agents (context-gatherer, general-task-execution) and you influence behavior through steering files rather than creating named agents.
 
-This repo is meant to be a community resource. If you have:
-- Useful agents or skills
-- Clever hooks
-- Better MCP configurations
-- Improved rules
+**4. MCP is workspace-scoped**
 
-Please contribute! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+Claude Code put MCP configuration in a global `~/.claude.json`. Kiro scopes it to `.kiro/settings/mcp.json` per workspace, making it easier to share project-specific server configs with your team.
 
-### Ideas for Contributions
+**5. No session persistence hooks needed**
 
-- Language-specific skills (Python, Go, Rust patterns)
-- Framework-specific configs (Django, Rails, Laravel)
-- DevOps agents (Kubernetes, Terraform, AWS)
-- Testing strategies (different frameworks)
-- Domain-specific knowledge (ML, data engineering, mobile)
+Claude Code required custom hooks (SessionStart, SessionEnd, PreCompact) to persist context across sessions. Kiro handles context continuity natively — you don't need to manage this yourself.
 
 ---
 
-## Background
+## Migration Reference
 
-I've been using Claude Code since the experimental rollout. Won the Anthropic x Forum Ventures hackathon in Sep 2025 building [zenith.chat](https://zenith.chat) with [@DRodriguezFX](https://x.com/DRodriguezFX) - entirely using Claude Code.
+This plugin was migrated from the [Everything Claude Code](https://github.com/affaan-m/everything-claude-code) repository.
 
-These configs are battle-tested across multiple production applications.
+### Component Mapping
 
----
+Here's how each original component was translated:
 
-## Important Notes
+| Claude Code Source | Kiro Destination | What Changed |
+|--------------------|------------------|--------------|
+| `rules/coding-style.md` | `.kiro/steering/coding-style.md` | Added `inclusion: always` frontmatter |
+| `rules/security.md` | `.kiro/steering/security.md` | Added `inclusion: always` frontmatter |
+| `rules/testing.md` | `.kiro/steering/testing.md` | Added `inclusion: always` frontmatter |
+| `rules/git-workflow.md` | `.kiro/steering/git-workflow.md` | Added `inclusion: always` frontmatter |
+| `rules/patterns.md` | `.kiro/steering/patterns.md` | Added `inclusion: always` frontmatter |
+| `rules/performance.md` | `.kiro/steering/performance.md` | Added `inclusion: always` frontmatter |
+| `rules/agents.md` | `.kiro/steering/agents-orchestration.md` | Adapted for Kiro's sub-agent model |
+| `agents/security-reviewer.md` | `.kiro/steering/security-review.md` | Converted to conditional steering (`fileMatch`) |
+| `commands/tdd.md` + `agents/tdd-guide.md` | `.kiro/steering/tdd-workflow.md` | Merged into manual steering file |
+| `commands/plan.md` + `agents/planner.md` | `.kiro/steering/planning.md` | Merged into manual steering file |
+| `commands/code-review.md` + `agents/code-reviewer.md` | `.kiro/steering/code-review.md` | Merged into manual steering file |
+| `hooks/hooks.json` (PostToolUse: Prettier) | `.kiro/hooks/prettier-format.json` | Converted to Kiro hook format |
+| `hooks/hooks.json` (PostToolUse: tsc check) | `.kiro/hooks/typescript-check.json` | Converted to Kiro hook format |
+| `hooks/hooks.json` (PostToolUse: console.log) | `.kiro/hooks/console-log-warning.json` | Converted to Kiro hook format |
+| `hooks/hooks.json` (PreToolUse: git push) | `.kiro/hooks/git-push-review.json` | Converted to preToolUse askAgent |
+| `hooks/hooks.json` (PreToolUse: doc blocker) | `.kiro/hooks/review-write-operations.json` | Generalized to all write operations |
+| `hooks/hooks.json` (SessionStart/End/PreCompact) | *Removed* | Not needed — Kiro handles natively |
+| `mcp-configs/mcp-servers.json` | `.kiro/settings/mcp.json` | Kept 6 most useful servers, added `disabled` flag |
+| `skills/*` | *Folded into steering* | Domain knowledge merged into relevant steering files |
+| `contexts/dev.md`, `research.md`, `review.md` | *Removed* | Use manual steering for mode-switching |
+| `examples/`, `scripts/`, `tests/` | *Removed* | Infrastructure not needed for Kiro |
+| `.claude-plugin/` | *Removed* | Kiro has no plugin marketplace format |
 
-### Context Window Management
+### What Was Removed and Why
 
-**Critical:** Don't enable all MCPs at once. Your 200k context window can shrink to 70k with too many tools enabled.
-
-Rule of thumb:
-- Have 20-30 MCPs configured
-- Keep under 10 enabled per project
-- Under 80 tools active
-
-Use `disabledMcpServers` in project config to disable unused ones.
-
-### Customization
-
-These configs work for my workflow. You should:
-1. Start with what resonates
-2. Modify for your stack
-3. Remove what you don't use
-4. Add your own patterns
-
----
-
-## Star History
-
-[![Star History Chart](https://api.star-history.com/svg?repos=affaan-m/everything-claude-code&type=Date)](https://star-history.com/#affaan-m/everything-claude-code&Date)
-
----
-
-## Links
-
-- **Shorthand Guide (Start Here):** [The Shorthand Guide to Everything Claude Code](https://x.com/affaanmustafa/status/2012378465664745795)
-- **Longform Guide (Advanced):** [The Longform Guide to Everything Claude Code](https://x.com/affaanmustafa/status/2014040193557471352)
-- **Follow:** [@affaanmustafa](https://x.com/affaanmustafa)
-- **zenith.chat:** [zenith.chat](https://zenith.chat)
+| Removed | Reason |
+|---------|--------|
+| `scripts/hooks/session-start.js` | Kiro manages context persistence natively |
+| `scripts/hooks/session-end.js` | Same — no manual session tracking needed |
+| `scripts/hooks/pre-compact.js` | Kiro handles compaction without user hooks |
+| `scripts/hooks/suggest-compact.js` | Not applicable to Kiro's context model |
+| `scripts/hooks/evaluate-session.js` | Continuous learning not supported via hooks in Kiro |
+| `scripts/lib/utils.js` | Only existed to support the Node.js hook scripts |
+| `scripts/lib/package-manager.js` | Package manager detection was a Claude Code feature |
+| `agents/*.md` (all 9) | No agent definition format in Kiro; knowledge folded into steering |
+| `skills/` (all 11 dirs) | Merged into steering files where relevant |
+| `tests/` | Tested the now-removed Node.js scripts |
 
 ---
 
 ## License
 
-MIT - Use freely, modify as needed, contribute back if you can.
-
----
-
-**Star this repo if it helps. Read both guides. Build something great.**
+MIT — Use freely, modify as needed, contribute back if you can.

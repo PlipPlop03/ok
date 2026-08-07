@@ -1,0 +1,13 @@
+{
+  "name": "Review Write Operations",
+  "version": "1.0.0",
+  "description": "Before any write operation, verify it follows coding standards: immutability, proper error handling, no hardcoded secrets, and appropriate file size",
+  "when": {
+    "type": "preToolUse",
+    "toolTypes": ["write"]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "Before writing this file, verify: 1) No hardcoded secrets or API keys, 2) Immutable patterns used (no mutation), 3) Proper error handling with try/catch, 4) File will remain under 800 lines, 5) No console.log statements in production code. If any violation is found, mention it before proceeding."
+  }
+}

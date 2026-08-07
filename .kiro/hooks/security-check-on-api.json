@@ -1,0 +1,13 @@
+{
+  "name": "Security Check on API Files",
+  "version": "1.0.0",
+  "description": "When API route files are created, remind the agent to verify security best practices",
+  "when": {
+    "type": "fileCreated",
+    "patterns": ["**/api/**", "**/routes/**", "**/middleware/**"]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "A new API/route/middleware file was created. Verify it includes: 1) Input validation (preferably with Zod), 2) Proper authentication/authorization checks, 3) Rate limiting consideration, 4) No sensitive data in error responses, 5) Parameterized queries if database access is involved."
+  }
+}

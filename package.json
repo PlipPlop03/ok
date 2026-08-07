@@ -1,0 +1,24 @@
+{
+  "name": "everything-kiro",
+  "version": "1.0.0",
+  "description": "Battle-tested Kiro configurations — steering files, hooks, and MCP configs",
+  "bin": {
+    "everything-kiro": "./everything-kiro.js"
+  },
+  "keywords": [
+    "kiro",
+    "ai",
+    "development",
+    "configuration",
+    "steering",
+    "hooks"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/aliakbr/everything-claude-code-kiro-migration.git"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "name": "Auto-format with Prettier",
+  "version": "1.0.0",
+  "description": "Automatically formats JS/TS files with Prettier after they are edited",
+  "when": {
+    "type": "fileEdited",
+    "patterns": ["*.ts", "*.tsx", "*.js", "*.jsx"]
+  },
+  "then": {
+    "type": "runCommand",
+    "command": "npx prettier --write \"$KIRO_FILE_PATH\""
+  }
+}

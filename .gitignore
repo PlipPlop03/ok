@@ -21,9 +21,6 @@ Thumbs.db
 # Node
 node_modules/
 
-# Personal configs (if any)
+# Personal configs
 personal/
 private/
-
-# Session templates (not committed)
-examples/sessions/*.tmp
