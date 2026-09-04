@@ -1,22 +1,21 @@
 {
-  "name": "everything-claude-code",
+  "name": "ai-toolbox",
   "owner": {
-    "name": "Affaan Mustafa",
-    "email": "affaan@example.com"
+    "name": "Anthony Renteria"
   },
   "metadata": {
-    "description": "Battle-tested Claude Code configurations from an Anthropic hackathon winner"
+    "description": "Anthony Renteria's personal Claude Code toolkit"
   },
   "plugins": [
     {
-      "name": "everything-claude-code",
+      "name": "ai-toolbox",
       "source": "./",
-      "description": "Complete collection of agents, skills, hooks, commands, and rules evolved over 10+ months of intensive daily use",
+      "description": "Personal collection of agents, skills, commands, rules, and hooks for TypeScript/React and C#/.NET development",
       "author": {
-        "name": "Affaan Mustafa"
+        "name": "Anthony Renteria"
       },
-      "homepage": "https://github.com/affaan-m/everything-claude-code",
-      "repository": "https://github.com/affaan-m/everything-claude-code",
+      "homepage": "https://github.com/Arenteria518/AI-toolbox",
+      "repository": "https://github.com/Arenteria518/AI-toolbox",
       "license": "MIT",
       "keywords": [
         "agents",
@@ -26,7 +25,7 @@
         "tdd",
         "code-review",
         "security",
-        "best-practices"
+        "typescript"
       ],
       "category": "workflow",
       "tags": [
@@ -37,7 +36,7 @@
         "tdd",
         "code-review",
         "security",
-        "best-practices"
+        "typescript"
       ]
     }
   ]

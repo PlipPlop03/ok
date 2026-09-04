@@ -1,12 +1,11 @@
 {
-  "name": "everything-claude-code",
-  "description": "Complete collection of battle-tested Claude Code configs from an Anthropic hackathon winner - agents, skills, hooks, commands, and rules evolved over 10+ months of intensive daily use",
+  "name": "ai-toolbox",
+  "description": "Anthony Renteria's personal Claude Code toolkit - agents, skills, commands, rules, and hooks for TypeScript/React and C#/.NET development",
   "author": {
-    "name": "Affaan Mustafa",
-    "url": "https://x.com/affaanmustafa"
+    "name": "Anthony Renteria"
   },
-  "homepage": "https://github.com/affaan-m/everything-claude-code",
-  "repository": "https://github.com/affaan-m/everything-claude-code",
+  "homepage": "https://github.com/Arenteria518/AI-toolbox",
+  "repository": "https://github.com/Arenteria518/AI-toolbox",
   "license": "MIT",
   "keywords": [
     "claude-code",
@@ -18,10 +17,12 @@
     "tdd",
     "code-review",
     "security",
+    "typescript",
     "workflow",
-    "automation",
-    "best-practices"
+    "automation"
   ],
   "commands": "./commands",
-  "skills": "./skills"
+  "agents": "./agents",
+  "skills": "./skills",
+  "hooks": "./hooks/hooks.json"
 }

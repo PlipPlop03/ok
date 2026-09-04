@@ -2,25 +2,29 @@
 
 ## Hook Types
 
-- **PreToolUse**: Before tool execution (validation, parameter modification)
+- **SessionStart**: When a session begins (context/environment detection)
+- **PreToolUse**: Before tool execution (validation, reminders)
 - **PostToolUse**: After tool execution (auto-format, checks)
-- **Stop**: When session ends (final verification)
+- **Stop**: When the response ends (final verification)
 
-## Current Hooks (in ~/.claude/settings.json)
+## Current Hooks (in `hooks/hooks.json`)
+
+### SessionStart
+- **package-manager detection**: Reports which package manager the project resolves to
+  (pnpm/bun/yarn/npm), so the format/check hooks use the right one.
 
 ### PreToolUse
-- **tmux reminder**: Suggests tmux for long-running commands (npm, pnpm, yarn, cargo, etc.)
-- **git push review**: Opens Zed for review before push
-- **doc blocker**: Blocks creation of unnecessary .md/.txt files
+- **git push reminder**: Prints a reminder to review changes before `git push`.
 
 ### PostToolUse
-- **PR creation**: Logs PR URL and GitHub Actions status
-- **Prettier**: Auto-formats JS/TS files after edit
-- **TypeScript check**: Runs tsc after editing .ts/.tsx files
-- **console.log warning**: Warns about console.log in edited files
+- **PR creation**: Logs the PR URL and a ready-to-run review command after `gh pr create`.
+- **Prettier**: Auto-formats JS/TS files after edit, via the project's package manager.
+- **TypeScript check**: Runs `tsc --noEmit` after editing .ts/.tsx files, via the project's
+  package manager.
+- **console.log warning**: Warns about `console.log` in the edited file.
 
 ### Stop
-- **console.log audit**: Checks all modified files for console.log before session ends
+- **console.log audit**: Checks all modified files for `console.log` before the response ends.
 
 ## Auto-Accept Permissions
 
