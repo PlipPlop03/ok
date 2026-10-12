@@ -9,18 +9,18 @@
 ## Current Hooks (in ~/.claude/settings.json)
 
 ### PreToolUse
-- **tmux reminder**: Suggests tmux for long-running commands (npm, pnpm, yarn, cargo, etc.)
-- **git push review**: Opens Zed for review before push
-- **doc blocker**: Blocks creation of unnecessary .md/.txt files
+- **git push reminder**: Prints a reminder to review changes before push (does not block)
+- **strategic compact**: Suggests /compact at logical intervals
 
 ### PostToolUse
-- **PR creation**: Logs PR URL and GitHub Actions status
-- **Prettier**: Auto-formats JS/TS files after edit
-- **TypeScript check**: Runs tsc after editing .ts/.tsx files
-- **console.log warning**: Warns about console.log in edited files
+- **PR creation**: Logs PR URL and a `gh pr review` command
+- **Post-edit checks** (JS/TS files, after Edit or Write):
+  - Prettier: formats the file if Prettier is installed in the project
+  - console.log warning: warns about console.log in the edited file
+  - TypeScript check: runs the project's tsc for .ts/.tsx files and reports errors in the edited file
 
 ### Stop
-- **console.log audit**: Checks all modified files for console.log before session ends
+- **console.log audit**: Checks modified and untracked JS/TS files for console.log after each response
 
 ## Auto-Accept Permissions
 

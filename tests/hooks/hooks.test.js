@@ -9,7 +9,7 @@ const path = require('path');
 const fs = require('fs');
 const os = require('os');
 const { execSync, spawn } = require('child_process');
-const { getDateString } = require('../../scripts/lib/utils');
+const { getDateString, getSessionsDir } = require('../../scripts/lib/utils');
 
 // Test helper
 function test(name, fn) {
@@ -38,9 +38,10 @@ async function asyncTest(name, fn) {
 }
 
 // Run a script and capture output
-function runScript(scriptPath, input = '', env = {}) {
+function runScript(scriptPath, input = '', env = {}, cwd = undefined) {
   return new Promise((resolve, reject) => {
     const proc = spawn('node', [scriptPath], {
+      cwd,
       env: { ...process.env, ...env },
       stdio: ['pipe', 'pipe', 'pipe']
     });
@@ -111,15 +112,13 @@ async function runTests() {
   })) passed++; else failed++;
 
   if (await asyncTest('creates or updates session file', async () => {
-    // Run the script
+    // Read the date before and after, in case the run crosses midnight
+    const before = getDateString();
     await runScript(path.join(scriptsDir, 'session-end.js'));
+    const after = getDateString();
 
-    // Check if session file was created
-    const sessionsDir = path.join(os.homedir(), '.claude', 'sessions');
-    const today = getDateString();
-    const sessionFile = path.join(sessionsDir, `${today}-session.tmp`);
-
-    assert.ok(fs.existsSync(sessionFile), 'Session file should exist');
+    const sessionFiles = [before, after].map(d => path.join(getSessionsDir(), `${d}-session.tmp`));
+    assert.ok(sessionFiles.some(f => fs.existsSync(f)), 'Session file should exist');
   })) passed++; else failed++;
 
   // pre-compact.js tests
@@ -303,6 +302,144 @@ async function runTests() {
     for (const [eventType, hookArray] of Object.entries(hooks.hooks)) {
       checkHooks(hookArray);
     }
+  })) passed++; else failed++;
+
+  if (test('matchers are tool-name patterns, not expressions', () => {
+    const hooksPath = path.join(__dirname, '..', '..', 'hooks', 'hooks.json');
+    const hooks = JSON.parse(fs.readFileSync(hooksPath, 'utf8'));
+
+    for (const hookArray of Object.values(hooks.hooks)) {
+      for (const entry of hookArray) {
+        if (entry.matcher === undefined) continue;
+        assert.ok(
+          /^(\*|[A-Za-z_]+(\|[A-Za-z_]+)*)$/.test(entry.matcher),
+          `Matcher should be a tool name pattern like "Edit|Write": ${entry.matcher}`
+        );
+      }
+    }
+  })) passed++; else failed++;
+
+  // git-push-reminder.js tests
+  console.log('\ngit-push-reminder.js:');
+
+  if (await asyncTest('reminds on git push only', async () => {
+    const script = path.join(scriptsDir, 'git-push-reminder.js');
+    const push = await runScript(script, JSON.stringify({ tool_input: { command: 'git push origin main' } }));
+    const other = await runScript(script, JSON.stringify({ tool_input: { command: 'git status' } }));
+    assert.strictEqual(push.code, 0);
+    assert.ok(push.stderr.includes('Review changes before push'), 'Should remind on git push');
+    assert.strictEqual(other.stderr, '', 'Should be silent for other commands');
+  })) passed++; else failed++;
+
+  // pr-url-logger.js tests
+  console.log('\npr-url-logger.js:');
+
+  if (await asyncTest('logs PR URL and review command', async () => {
+    const input = {
+      tool_input: { command: 'gh pr create --fill' },
+      tool_response: { stdout: 'https://github.com/acme/app/pull/42\n' }
+    };
+    const result = await runScript(path.join(scriptsDir, 'pr-url-logger.js'), JSON.stringify(input));
+    assert.ok(result.stderr.includes('PR created: https://github.com/acme/app/pull/42'));
+    assert.ok(result.stderr.includes('gh pr review 42 --repo acme/app'));
+  })) passed++; else failed++;
+
+  // post-edit.js tests
+  console.log('\npost-edit.js:');
+
+  // Writes a fake package whose bin records its arguments, or prints canned output
+  const fakePackage = (dir, name, binName, body) => {
+    const pkgDir = path.join(dir, 'node_modules', name);
+    fs.mkdirSync(path.join(pkgDir, 'bin'), { recursive: true });
+    fs.writeFileSync(path.join(pkgDir, 'package.json'), JSON.stringify({
+      name, version: '1.0.0', bin: { [binName]: './bin/cli.js' }
+    }));
+    fs.writeFileSync(path.join(pkgDir, 'bin', 'cli.js'), body);
+  };
+
+  if (await asyncTest('warns about console.log in edited file', async () => {
+    const testDir = createTestDir();
+    const file = path.join(testDir, 'a.js');
+    fs.writeFileSync(file, 'const a = 1;\nconsole.log(a);\n');
+    const result = await runScript(path.join(scriptsDir, 'post-edit.js'), JSON.stringify({ tool_input: { file_path: file } }));
+    assert.ok(result.stderr.includes('console.log found'), 'Should warn about console.log');
+    assert.ok(result.stderr.includes('2: console.log(a);'), 'Should show line number');
+    cleanupTestDir(testDir);
+  })) passed++; else failed++;
+
+  if (await asyncTest('passes file path to Prettier without a shell', async () => {
+    const testDir = createTestDir();
+    const marker = path.join(testDir, 'prettier-args.json');
+    fakePackage(testDir, 'prettier', 'prettier',
+      `require('fs').writeFileSync(${JSON.stringify(marker)}, JSON.stringify(process.argv.slice(2)));`);
+    const file = path.join(testDir, '$(touch pwned).ts');
+    fs.writeFileSync(file, 'const a = 1;\n');
+
+    await runScript(path.join(scriptsDir, 'post-edit.js'), JSON.stringify({ tool_input: { file_path: file } }), {}, testDir);
+
+    assert.deepStrictEqual(JSON.parse(fs.readFileSync(marker, 'utf8')), ['--write', file]);
+    assert.ok(!fs.existsSync(path.join(testDir, 'pwned')), 'Filename must not be executed');
+    cleanupTestDir(testDir);
+  })) passed++; else failed++;
+
+  if (await asyncTest('reports tsc errors only for the edited file', async () => {
+    const testDir = createTestDir();
+    fs.writeFileSync(path.join(testDir, 'tsconfig.json'), '{}');
+    fakePackage(testDir, 'typescript', 'tsc', [
+      "console.log('src/a/index.ts(1,7): error TS2322: in a');",
+      "console.log('src/b/index.ts(2,7): error TS2322: in b');",
+      'process.exit(2);'
+    ].join('\n'));
+    const file = path.join(testDir, 'src', 'a', 'index.ts');
+    fs.mkdirSync(path.dirname(file), { recursive: true });
+    fs.writeFileSync(file, 'const a: number = "x";\n');
+
+    const result = await runScript(path.join(scriptsDir, 'post-edit.js'), JSON.stringify({ tool_input: { file_path: file } }));
+
+    assert.ok(result.stderr.includes('in a'), 'Should report error in edited file');
+    assert.ok(!result.stderr.includes('in b'), 'Should not report same-named file elsewhere');
+    cleanupTestDir(testDir);
+  })) passed++; else failed++;
+
+  if (await asyncTest('ignores non-JS/TS files', async () => {
+    const testDir = createTestDir();
+    const file = path.join(testDir, 'notes.md');
+    fs.writeFileSync(file, 'console.log in prose\n');
+    const result = await runScript(path.join(scriptsDir, 'post-edit.js'), JSON.stringify({ tool_input: { file_path: file } }));
+    assert.strictEqual(result.code, 0);
+    assert.strictEqual(result.stderr, '');
+    cleanupTestDir(testDir);
+  })) passed++; else failed++;
+
+  // console-log-audit.js tests
+  console.log('\nconsole-log-audit.js:');
+
+  if (await asyncTest('finds modified and untracked files from a subdirectory', async () => {
+    const testDir = createTestDir();
+    const gitIn = args => execSync(`git ${args}`, { cwd: testDir, stdio: 'pipe' });
+    gitIn('init -q');
+    gitIn('config user.email test@example.com');
+    gitIn('config user.name test');
+    const sub = path.join(testDir, 'packages', 'web');
+    fs.mkdirSync(sub, { recursive: true });
+    fs.writeFileSync(path.join(sub, 'tracked.js'), 'const a = 1;\n');
+    gitIn('add -A');
+    gitIn('commit -qm init');
+    fs.writeFileSync(path.join(sub, 'tracked.js'), 'console.log(1);\n');
+    fs.writeFileSync(path.join(sub, 'new.ts'), 'console.log(2);\n');
+
+    const result = await runScript(path.join(scriptsDir, 'console-log-audit.js'), '{}', {}, sub);
+
+    assert.ok(result.stderr.includes('tracked.js'), 'Should flag modified file');
+    assert.ok(result.stderr.includes('new.ts'), 'Should flag untracked file');
+    cleanupTestDir(testDir);
+  })) passed++; else failed++;
+
+  if (await asyncTest('exits quietly outside a git repo', async () => {
+    const testDir = createTestDir();
+    const result = await runScript(path.join(scriptsDir, 'console-log-audit.js'), '{}', {}, testDir);
+    assert.strictEqual(result.code, 0);
+    cleanupTestDir(testDir);
   })) passed++; else failed++;
 
   // Summary
