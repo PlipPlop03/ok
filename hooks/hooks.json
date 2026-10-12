@@ -63,7 +63,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node -e \"const{execSync}=require('child_process');const fs=require('fs');let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>{const i=JSON.parse(d);const p=i.tool_input?.file_path;if(p&&/\\.(ts|tsx|js|jsx)$/.test(p)&&fs.existsSync(p)){try{execSync('npx --no-install prettier --write \\\"'+p+'\\\"',{stdio:['pipe','pipe','pipe']})}catch(e){}}})\""
+            "command": "node -e \"const{execFileSync}=require('child_process');const fs=require('fs');const path=require('path');let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>{const i=JSON.parse(d);const p=i.tool_input?.file_path;if(p&&/\\.(ts|tsx|js|jsx)$/.test(p)&&fs.existsSync(p)){try{const pj=require.resolve('prettier/package.json',{paths:[path.dirname(p)]});const b=JSON.parse(fs.readFileSync(pj,'utf8')).bin;const bin=path.join(path.dirname(pj),typeof b==='string'?b:b.prettier);execFileSync(process.execPath,[bin,'--write',p],{stdio:['pipe','pipe','pipe']})}catch(e){}}})\""
           }
         ],
         "description": "Auto-format JS/TS files with Prettier after edits (only if Prettier is installed locally)"
