@@ -11,13 +11,14 @@
  *   and reports errors in that file only
  *
  * Tools are never downloaded, and the file path is always passed as an
- * argument (never through a shell).
+ * argument (never through a shell). Findings are returned to Claude as
+ * additionalContext so it can act on them.
  */
 
 const path = require('path');
 const fs = require('fs');
 const { execFileSync } = require('child_process');
-const { readStdinJson, readFile, log, isWindows } = require('../lib/utils');
+const { readStdinJson, readFile, output, isWindows } = require('../lib/utils');
 
 const JS_TS = /\.(ts|tsx|js|jsx)$/;
 const TS = /\.(ts|tsx)$/;
@@ -39,28 +40,32 @@ function resolveLocalBin(pkg, binName, fromDir) {
 
 function runPrettier(filePath) {
   const bin = resolveLocalBin('prettier', 'prettier', path.dirname(filePath));
-  if (!bin) return;
+  if (!bin) return []; // Prettier not installed in this project
+
   try {
-    execFileSync(process.execPath, [bin, '--write', filePath], { stdio: 'pipe' });
-  } catch {
-    // Formatting is best-effort
+    execFileSync(process.execPath, [bin, '--write', filePath], { encoding: 'utf8', stdio: 'pipe' });
+    return [];
+  } catch (err) {
+    const detail = (err.stderr || err.message || '').trim().split('\n').slice(0, 5);
+    return [`[Hook] Prettier failed on ${filePath}:`, ...detail];
   }
 }
 
 function warnConsoleLog(filePath) {
   const content = readFile(filePath);
-  if (!content) return;
+  if (!content) return [];
 
   const matches = [];
   content.split('\n').forEach((line, idx) => {
     if (/console\.log/.test(line)) matches.push(`${idx + 1}: ${line.trim()}`);
   });
 
-  if (matches.length > 0) {
-    log(`[Hook] WARNING: console.log found in ${filePath}`);
-    matches.slice(0, 5).forEach(m => log(m));
-    log('[Hook] Remove console.log before committing');
-  }
+  if (matches.length === 0) return [];
+  return [
+    `[Hook] WARNING: console.log found in ${filePath}`,
+    ...matches.slice(0, 5),
+    '[Hook] Remove console.log before committing'
+  ];
 }
 
 function findTsconfigDir(filePath) {
@@ -80,32 +85,30 @@ function samePath(a, b) {
 
 function runTypeCheck(filePath) {
   const projectDir = findTsconfigDir(filePath);
-  if (!projectDir) return;
+  if (!projectDir) return [];
 
   const bin = resolveLocalBin('typescript', 'tsc', projectDir);
-  if (!bin) return;
+  if (!bin) return [];
 
-  let output = '';
+  let tscOutput = '';
   try {
     execFileSync(process.execPath, [bin, '--noEmit', '--pretty', 'false'], {
       cwd: projectDir,
       encoding: 'utf8',
       stdio: 'pipe'
     });
-    return;
+    return [];
   } catch (err) {
-    output = err.stdout || '';
+    tscOutput = err.stdout || '';
   }
 
   // tsc lines look like: src/a/index.ts(3,5): error TS2322: ...
-  const errors = output.split('\n').filter(line => {
+  const errors = tscOutput.split('\n').filter(line => {
     const m = line.match(/^(.+?)\(\d+,\d+\): /);
     return m && samePath(path.resolve(projectDir, m[1]), filePath);
   });
 
-  if (errors.length > 0) {
-    log(errors.slice(0, 10).join('\n'));
-  }
+  return errors.slice(0, 10);
 }
 
 async function main() {
@@ -116,9 +119,20 @@ async function main() {
     process.exit(0);
   }
 
-  runPrettier(filePath);
-  warnConsoleLog(filePath);
-  if (TS.test(filePath)) runTypeCheck(filePath);
+  const messages = [
+    ...runPrettier(filePath),
+    ...warnConsoleLog(filePath),
+    ...(TS.test(filePath) ? runTypeCheck(filePath) : [])
+  ];
+
+  if (messages.length > 0) {
+    output({
+      hookSpecificOutput: {
+        hookEventName: 'PostToolUse',
+        additionalContext: messages.join('\n')
+      }
+    });
+  }
 
   process.exit(0);
 }

@@ -7,12 +7,13 @@
  * After each response, checks modified and untracked JS/TS files in the
  * current git repo for console.log statements. Paths are resolved from the
  * repo root, so this works when Claude's working directory is a subfolder.
+ * Findings are shown to the user as a systemMessage.
  */
 
 const path = require('path');
 const fs = require('fs');
 const { execFileSync } = require('child_process');
-const { log } = require('../lib/utils');
+const { output } = require('../lib/utils');
 
 function git(args) {
   return execFileSync('git', args, { encoding: 'utf8', stdio: 'pipe' }).trim();
@@ -43,16 +44,14 @@ function main() {
     .map(f => path.join(root, f))
     .filter(f => fs.existsSync(f));
 
-  let hasConsole = false;
-  for (const file of files) {
-    if (fs.readFileSync(file, 'utf8').includes('console.log')) {
-      log(`[Hook] WARNING: console.log found in ${path.relative(root, file)}`);
-      hasConsole = true;
-    }
-  }
+  const flagged = files
+    .filter(file => fs.readFileSync(file, 'utf8').includes('console.log'))
+    .map(file => `[Hook] WARNING: console.log found in ${path.relative(root, file)}`);
 
-  if (hasConsole) {
-    log('[Hook] Remove console.log statements before committing');
+  if (flagged.length > 0) {
+    output({
+      systemMessage: [...flagged, '[Hook] Remove console.log statements before committing'].join('\n')
+    });
   }
 
   process.exit(0);

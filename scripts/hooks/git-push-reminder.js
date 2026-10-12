@@ -8,15 +8,16 @@
  * Never blocks the command.
  */
 
-const { readStdinJson, log } = require('../lib/utils');
+const { readStdinJson, output } = require('../lib/utils');
 
 async function main() {
   const input = await readStdinJson();
   const command = input.tool_input?.command || '';
 
   if (/\bgit push\b/.test(command)) {
-    log('[Hook] Review changes before push...');
-    log('[Hook] Continuing with push (remove this hook to add interactive review)');
+    output({
+      systemMessage: '[Hook] Review changes before push. Continuing with push (remove this hook to add interactive review)'
+    });
   }
 
   process.exit(0);

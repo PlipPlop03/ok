@@ -8,7 +8,7 @@
  * response and prints it with a ready-to-run review command.
  */
 
-const { readStdinJson, log } = require('../lib/utils');
+const { readStdinJson, output } = require('../lib/utils');
 
 async function main() {
   const input = await readStdinJson();
@@ -20,8 +20,9 @@ async function main() {
 
     if (match) {
       const [url, repo, pr] = match;
-      log(`[Hook] PR created: ${url}`);
-      log(`[Hook] To review: gh pr review ${pr} --repo ${repo}`);
+      output({
+        systemMessage: `[Hook] PR created: ${url}\n[Hook] To review: gh pr review ${pr} --repo ${repo}`
+      });
     }
   }
 

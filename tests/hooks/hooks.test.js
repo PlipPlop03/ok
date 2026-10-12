@@ -65,6 +65,13 @@ function runScript(scriptPath, input = '', env = {}, cwd = undefined) {
   });
 }
 
+// Message a hook returned as JSON on stdout (systemMessage or additionalContext)
+function hookMessage(result) {
+  if (!result.stdout.trim()) return '';
+  const json = JSON.parse(result.stdout);
+  return json.systemMessage || json.hookSpecificOutput?.additionalContext || '';
+}
+
 // Create a temporary test directory
 function createTestDir() {
   const testDir = path.join(os.tmpdir(), `hooks-test-${Date.now()}`);
@@ -327,8 +334,8 @@ async function runTests() {
     const push = await runScript(script, JSON.stringify({ tool_input: { command: 'git push origin main' } }));
     const other = await runScript(script, JSON.stringify({ tool_input: { command: 'git status' } }));
     assert.strictEqual(push.code, 0);
-    assert.ok(push.stderr.includes('Review changes before push'), 'Should remind on git push');
-    assert.strictEqual(other.stderr, '', 'Should be silent for other commands');
+    assert.ok(hookMessage(push).includes('Review changes before push'), 'Should remind on git push');
+    assert.strictEqual(hookMessage(other), '', 'Should be silent for other commands');
   })) passed++; else failed++;
 
   // pr-url-logger.js tests
@@ -340,8 +347,8 @@ async function runTests() {
       tool_response: { stdout: 'https://github.com/acme/app/pull/42\n' }
     };
     const result = await runScript(path.join(scriptsDir, 'pr-url-logger.js'), JSON.stringify(input));
-    assert.ok(result.stderr.includes('PR created: https://github.com/acme/app/pull/42'));
-    assert.ok(result.stderr.includes('gh pr review 42 --repo acme/app'));
+    assert.ok(hookMessage(result).includes('PR created: https://github.com/acme/app/pull/42'));
+    assert.ok(hookMessage(result).includes('gh pr review 42 --repo acme/app'));
   })) passed++; else failed++;
 
   // post-edit.js tests
@@ -362,8 +369,8 @@ async function runTests() {
     const file = path.join(testDir, 'a.js');
     fs.writeFileSync(file, 'const a = 1;\nconsole.log(a);\n');
     const result = await runScript(path.join(scriptsDir, 'post-edit.js'), JSON.stringify({ tool_input: { file_path: file } }));
-    assert.ok(result.stderr.includes('console.log found'), 'Should warn about console.log');
-    assert.ok(result.stderr.includes('2: console.log(a);'), 'Should show line number');
+    assert.ok(hookMessage(result).includes('console.log found'), 'Should warn about console.log');
+    assert.ok(hookMessage(result).includes('2: console.log(a);'), 'Should show line number');
     cleanupTestDir(testDir);
   })) passed++; else failed++;
 
@@ -382,6 +389,20 @@ async function runTests() {
     cleanupTestDir(testDir);
   })) passed++; else failed++;
 
+  if (await asyncTest('reports Prettier failures', async () => {
+    const testDir = createTestDir();
+    fakePackage(testDir, 'prettier', 'prettier',
+      "console.error('SyntaxError: Unexpected token (1:7)'); process.exit(2);");
+    const file = path.join(testDir, 'broken.js');
+    fs.writeFileSync(file, 'const = ;\n');
+
+    const result = await runScript(path.join(scriptsDir, 'post-edit.js'), JSON.stringify({ tool_input: { file_path: file } }));
+
+    assert.ok(hookMessage(result).includes('Prettier failed'), 'Should report the failure');
+    assert.ok(hookMessage(result).includes('Unexpected token'), 'Should include Prettier error');
+    cleanupTestDir(testDir);
+  })) passed++; else failed++;
+
   if (await asyncTest('reports tsc errors only for the edited file', async () => {
     const testDir = createTestDir();
     fs.writeFileSync(path.join(testDir, 'tsconfig.json'), '{}');
@@ -396,8 +417,8 @@ async function runTests() {
 
     const result = await runScript(path.join(scriptsDir, 'post-edit.js'), JSON.stringify({ tool_input: { file_path: file } }));
 
-    assert.ok(result.stderr.includes('in a'), 'Should report error in edited file');
-    assert.ok(!result.stderr.includes('in b'), 'Should not report same-named file elsewhere');
+    assert.ok(hookMessage(result).includes('in a'), 'Should report error in edited file');
+    assert.ok(!hookMessage(result).includes('in b'), 'Should not report same-named file elsewhere');
     cleanupTestDir(testDir);
   })) passed++; else failed++;
 
@@ -407,7 +428,7 @@ async function runTests() {
     fs.writeFileSync(file, 'console.log in prose\n');
     const result = await runScript(path.join(scriptsDir, 'post-edit.js'), JSON.stringify({ tool_input: { file_path: file } }));
     assert.strictEqual(result.code, 0);
-    assert.strictEqual(result.stderr, '');
+    assert.strictEqual(hookMessage(result), '');
     cleanupTestDir(testDir);
   })) passed++; else failed++;
 
@@ -430,8 +451,8 @@ async function runTests() {
 
     const result = await runScript(path.join(scriptsDir, 'console-log-audit.js'), '{}', {}, sub);
 
-    assert.ok(result.stderr.includes('tracked.js'), 'Should flag modified file');
-    assert.ok(result.stderr.includes('new.ts'), 'Should flag untracked file');
+    assert.ok(hookMessage(result).includes('tracked.js'), 'Should flag modified file');
+    assert.ok(hookMessage(result).includes('new.ts'), 'Should flag untracked file');
     cleanupTestDir(testDir);
   })) passed++; else failed++;
 
