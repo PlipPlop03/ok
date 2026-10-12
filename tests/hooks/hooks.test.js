@@ -9,6 +9,7 @@ const path = require('path');
 const fs = require('fs');
 const os = require('os');
 const { execSync, spawn } = require('child_process');
+const { getDateString } = require('../../scripts/lib/utils');
 
 // Test helper
 function test(name, fn) {
@@ -115,7 +116,7 @@ async function runTests() {
 
     // Check if session file was created
     const sessionsDir = path.join(os.homedir(), '.claude', 'sessions');
-    const today = new Date().toISOString().split('T')[0];
+    const today = getDateString();
     const sessionFile = path.join(sessionsDir, `${today}-session.tmp`);
 
     assert.ok(fs.existsSync(sessionFile), 'Session file should exist');
